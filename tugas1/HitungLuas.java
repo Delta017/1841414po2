@@ -16,6 +16,7 @@ public class HitungLuas {
     public static void main(String[] args) {
         // TODO code application logic here
         cariLuasPersegiPanjang();
+        cariLuasLingkaran();
     }
     
     public static void cariLuasPersegiPanjang(){
@@ -32,5 +33,14 @@ public class HitungLuas {
        luas = pan * leb;
        System.out.print("Luas : "+luas);
     }
-    
+    public static void cariLuasLingkaran(){
+        double jari;
+        double luas;
+       Scanner input = new Scanner(System.in);
+       System.out.print("Masukan jari : ");
+       jari = input.nextInt();
+       System.out.println("");
+       luas = 2*jari * 3.14;
+       System.out.print("Luas : "+luas);
+    }
 }
