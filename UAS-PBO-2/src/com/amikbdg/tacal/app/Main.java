@@ -3,20 +3,62 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package com.amikbdg.tacal.app;
 
+package com.amikbdg.tacal.app;
+import com.opencsv.CSVReader;
+import com.opencsv.CSVReaderBuilder;
+import com.opencsv.CSVWriter;
+import java.awt.*;
+import java.awt.event.*;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.IOException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import javax.swing.JFileChooser;
+import javax.swing.table.DefaultTableModel;
+import javax.swing.table.TableRowSorter;
 /**
  *
  * @author DELL
  */
-public class Main extends javax.swing.JFrame {
+class CSV_FILTER extends javax.swing.filechooser.FileFilter {
+        @Override
+        public boolean accept(File file) {
+            // Allow only directories, or files with ".txt" extension
+            return file.isDirectory() || file.getAbsolutePath().endsWith(".csv");
+        }
+        @Override
+        public String getDescription() {
+            // This description will be displayed in the dialog,
+            // hard-coded = ugly, should be done via I18N
+            return "Comma Separated Value Files... (*.csv)";
+        }
+    } 
 
+public class Main extends javax.swing.JFrame {
+    
+    final DefaultTableModel dtm;
+    
+    String NA;
+    
     /**
      * Creates new form Main
      */
     public Main() {
         initComponents();
+        dtm = new DefaultTableModel();
+        t_nilai.setModel(dtm);
+        dtm.addColumn("Nama");
+        dtm.addColumn("NPM");
+        dtm.addColumn("Tugas");
+        dtm.addColumn("UTS");
+        dtm.addColumn("UAS");
+        dtm.addColumn("Nilai Akhir");
     }
+    public String FileName;
 
     /**
      * This method is called from within the constructor to initialize the form.
@@ -27,16 +69,17 @@ public class Main extends javax.swing.JFrame {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
-        jPanel1 = new javax.swing.JPanel();
+        CSV_BROWSE = new javax.swing.JFileChooser();
+        P_Title = new javax.swing.JPanel();
         jLabel1 = new javax.swing.JLabel();
-        jPanel2 = new javax.swing.JPanel();
+        P_CSV = new javax.swing.JPanel();
         B_BROWSE = new javax.swing.JButton();
         TF_FN = new javax.swing.JTextField();
         jScrollPane1 = new javax.swing.JScrollPane();
-        jTable1 = new javax.swing.JTable();
+        t_nilai = new javax.swing.JTable();
         B_EXPORT = new javax.swing.JButton();
         B_Statistik = new javax.swing.JButton();
-        jPanel3 = new javax.swing.JPanel();
+        P_CAL = new javax.swing.JPanel();
         jLabel2 = new javax.swing.JLabel();
         jPanel4 = new javax.swing.JPanel();
         jSpinner1 = new javax.swing.JSpinner();
@@ -46,11 +89,11 @@ public class Main extends javax.swing.JFrame {
         jLabel4 = new javax.swing.JLabel();
         jLabel5 = new javax.swing.JLabel();
         B_CAL = new javax.swing.JButton();
-        jPanel5 = new javax.swing.JPanel();
+        P_PROC = new javax.swing.JPanel();
         jProgressBar1 = new javax.swing.JProgressBar();
         jLabel7 = new javax.swing.JLabel();
         LB_PG = new javax.swing.JLabel();
-        jMenuBar1 = new javax.swing.JMenuBar();
+        MenuBar = new javax.swing.JMenuBar();
         File = new javax.swing.JMenu();
         BrowseMenu = new javax.swing.JMenuItem();
         ResetMenu = new javax.swing.JMenuItem();
@@ -59,32 +102,41 @@ public class Main extends javax.swing.JFrame {
         About = new javax.swing.JMenu();
         AboutMenu = new javax.swing.JMenuItem();
 
+        CSV_BROWSE.setDialogTitle("Pilih File .CSV");
+        CSV_BROWSE.setFileFilter(new CSV_FILTER());
+
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setTitle("Aplikasi Pengolah Nilai");
+        setName("MainFrame"); // NOI18N
 
         jLabel1.setFont(new java.awt.Font("Segoe UI Light", 0, 24)); // NOI18N
         jLabel1.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
         jLabel1.setText("Aplikasi Pengolah Nilai");
 
-        javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
-        jPanel1.setLayout(jPanel1Layout);
-        jPanel1Layout.setHorizontalGroup(
-            jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+        javax.swing.GroupLayout P_TitleLayout = new javax.swing.GroupLayout(P_Title);
+        P_Title.setLayout(P_TitleLayout);
+        P_TitleLayout.setHorizontalGroup(
+            P_TitleLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addComponent(jLabel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
         );
-        jPanel1Layout.setVerticalGroup(
-            jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+        P_TitleLayout.setVerticalGroup(
+            P_TitleLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addComponent(jLabel1)
         );
 
-        jPanel2.setBorder(javax.swing.BorderFactory.createEtchedBorder());
+        P_CSV.setBorder(javax.swing.BorderFactory.createEtchedBorder());
 
         B_BROWSE.setIcon(new javax.swing.ImageIcon(getClass().getResource("/com/amikbdg/tacal/res/icons8_csv_24px.png"))); // NOI18N
         B_BROWSE.setText("Browse");
+        B_BROWSE.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                B_BROWSEActionPerformed(evt);
+            }
+        });
 
         TF_FN.setText("load file...");
 
-        jTable1.setModel(new javax.swing.table.DefaultTableModel(
+        t_nilai.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
                 {null, null, null, null, null, null},
                 {null, null, null, null, null, null},
@@ -95,7 +147,7 @@ public class Main extends javax.swing.JFrame {
                 "Nama", "NPM", "Tugas", "UTS", "UAS", "Nilai Akhir"
             }
         ));
-        jScrollPane1.setViewportView(jTable1);
+        jScrollPane1.setViewportView(t_nilai);
 
         B_EXPORT.setIcon(new javax.swing.ImageIcon(getClass().getResource("/com/amikbdg/tacal/res/icons8_export_24px_1.png"))); // NOI18N
         B_EXPORT.setText("Ekspor");
@@ -103,44 +155,44 @@ public class Main extends javax.swing.JFrame {
         B_Statistik.setIcon(new javax.swing.ImageIcon(getClass().getResource("/com/amikbdg/tacal/res/icons8_bar_chart_24px_1.png"))); // NOI18N
         B_Statistik.setText("Statistik");
 
-        javax.swing.GroupLayout jPanel2Layout = new javax.swing.GroupLayout(jPanel2);
-        jPanel2.setLayout(jPanel2Layout);
-        jPanel2Layout.setHorizontalGroup(
-            jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanel2Layout.createSequentialGroup()
+        javax.swing.GroupLayout P_CSVLayout = new javax.swing.GroupLayout(P_CSV);
+        P_CSV.setLayout(P_CSVLayout);
+        P_CSVLayout.setHorizontalGroup(
+            P_CSVLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(P_CSVLayout.createSequentialGroup()
                 .addContainerGap()
-                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                .addGroup(P_CSVLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(jScrollPane1, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, 459, Short.MAX_VALUE)
-                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel2Layout.createSequentialGroup()
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, P_CSVLayout.createSequentialGroup()
                         .addGap(0, 0, Short.MAX_VALUE)
-                        .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel2Layout.createSequentialGroup()
+                        .addGroup(P_CSVLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, P_CSVLayout.createSequentialGroup()
                                 .addComponent(TF_FN, javax.swing.GroupLayout.PREFERRED_SIZE, 144, javax.swing.GroupLayout.PREFERRED_SIZE)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addComponent(B_BROWSE))
-                            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel2Layout.createSequentialGroup()
+                            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, P_CSVLayout.createSequentialGroup()
                                 .addComponent(B_Statistik)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addComponent(B_EXPORT)))))
                 .addContainerGap())
         );
-        jPanel2Layout.setVerticalGroup(
-            jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanel2Layout.createSequentialGroup()
+        P_CSVLayout.setVerticalGroup(
+            P_CSVLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(P_CSVLayout.createSequentialGroup()
                 .addContainerGap()
-                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                .addGroup(P_CSVLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(B_BROWSE)
                     .addComponent(TF_FN, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 216, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                .addGroup(P_CSVLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(B_EXPORT)
                     .addComponent(B_Statistik))
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
 
-        jPanel3.setBorder(javax.swing.BorderFactory.createEtchedBorder());
+        P_CAL.setBorder(javax.swing.BorderFactory.createEtchedBorder());
 
         jLabel2.setFont(new java.awt.Font("Segoe UI Light", 0, 14)); // NOI18N
         jLabel2.setText("Hitung Nilai Akhir");
@@ -198,20 +250,20 @@ public class Main extends javax.swing.JFrame {
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
 
-        javax.swing.GroupLayout jPanel3Layout = new javax.swing.GroupLayout(jPanel3);
-        jPanel3.setLayout(jPanel3Layout);
-        jPanel3Layout.setHorizontalGroup(
-            jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanel3Layout.createSequentialGroup()
+        javax.swing.GroupLayout P_CALLayout = new javax.swing.GroupLayout(P_CAL);
+        P_CAL.setLayout(P_CALLayout);
+        P_CALLayout.setHorizontalGroup(
+            P_CALLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(P_CALLayout.createSequentialGroup()
                 .addContainerGap()
-                .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                .addGroup(P_CALLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(jLabel2)
                     .addComponent(jPanel4, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
-        jPanel3Layout.setVerticalGroup(
-            jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanel3Layout.createSequentialGroup()
+        P_CALLayout.setVerticalGroup(
+            P_CALLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(P_CALLayout.createSequentialGroup()
                 .addContainerGap()
                 .addComponent(jLabel2)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
@@ -219,33 +271,33 @@ public class Main extends javax.swing.JFrame {
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
 
-        jPanel5.setBorder(javax.swing.BorderFactory.createBevelBorder(javax.swing.border.BevelBorder.RAISED));
+        P_PROC.setBorder(javax.swing.BorderFactory.createBevelBorder(javax.swing.border.BevelBorder.RAISED));
 
         jLabel7.setIcon(new javax.swing.ImageIcon(getClass().getResource("/com/amikbdg/tacal/res/icons8_process_24px.png"))); // NOI18N
 
         LB_PG.setText("Process : Standby");
 
-        javax.swing.GroupLayout jPanel5Layout = new javax.swing.GroupLayout(jPanel5);
-        jPanel5.setLayout(jPanel5Layout);
-        jPanel5Layout.setHorizontalGroup(
-            jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel5Layout.createSequentialGroup()
+        javax.swing.GroupLayout P_PROCLayout = new javax.swing.GroupLayout(P_PROC);
+        P_PROC.setLayout(P_PROCLayout);
+        P_PROCLayout.setHorizontalGroup(
+            P_PROCLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, P_PROCLayout.createSequentialGroup()
                 .addContainerGap()
                 .addComponent(jLabel7)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                .addGroup(P_PROCLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(jProgressBar1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addGroup(jPanel5Layout.createSequentialGroup()
+                    .addGroup(P_PROCLayout.createSequentialGroup()
                         .addComponent(LB_PG)
                         .addGap(0, 0, Short.MAX_VALUE))))
         );
-        jPanel5Layout.setVerticalGroup(
-            jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel5Layout.createSequentialGroup()
+        P_PROCLayout.setVerticalGroup(
+            P_PROCLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, P_PROCLayout.createSequentialGroup()
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addComponent(jLabel7)
                 .addContainerGap())
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel5Layout.createSequentialGroup()
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, P_PROCLayout.createSequentialGroup()
                 .addComponent(LB_PG)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addComponent(jProgressBar1, javax.swing.GroupLayout.PREFERRED_SIZE, 24, javax.swing.GroupLayout.PREFERRED_SIZE))
@@ -266,7 +318,7 @@ public class Main extends javax.swing.JFrame {
         ExitMenu.setText("Exit");
         File.add(ExitMenu);
 
-        jMenuBar1.add(File);
+        MenuBar.add(File);
 
         About.setText("Tentang");
 
@@ -279,29 +331,29 @@ public class Main extends javax.swing.JFrame {
         });
         About.add(AboutMenu);
 
-        jMenuBar1.add(About);
+        MenuBar.add(About);
 
-        setJMenuBar(jMenuBar1);
+        setJMenuBar(MenuBar);
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-            .addComponent(jPanel2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-            .addComponent(jPanel3, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-            .addComponent(jPanel5, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+            .addComponent(P_Title, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+            .addComponent(P_CSV, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+            .addComponent(P_CAL, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+            .addComponent(P_PROC, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
-                .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addComponent(P_Title, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jPanel2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addComponent(P_CSV, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jPanel3, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addComponent(P_CAL, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addComponent(jPanel5, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addComponent(P_PROC, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
         );
 
         pack();
@@ -310,6 +362,58 @@ public class Main extends javax.swing.JFrame {
     private void AboutMenuActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_AboutMenuActionPerformed
         new About().show();
     }//GEN-LAST:event_AboutMenuActionPerformed
+
+    private void B_BROWSEActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_B_BROWSEActionPerformed
+        int returnVal = CSV_BROWSE.showOpenDialog(this);
+    if (returnVal == JFileChooser.APPROVE_OPTION) {
+        File file = CSV_BROWSE.getSelectedFile();
+        //try {
+          // What to do with the file, e.g. display it in a TextArea
+          TF_FN.setText(CSV_BROWSE.getSelectedFile().getAbsolutePath());
+          /*  try {
+                //TF_FN.read( new FileReader( file.getAbsolutePath() ), null );
+                //}// catch (IOException ex) {
+                // System.out.println("problem accessing file"+file.getAbsolutePath());
+                //}
+                CSVReader reader = new CSVReader(new FileReader(CSV_BROWSE.getSelectedFile().getAbsolutePath()));
+            } catch (FileNotFoundException ex) {
+                Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
+            }*/
+          try
+          {
+        BufferedReader buff = new BufferedReader(new FileReader(CSV_BROWSE.getSelectedFile()));
+        int row = 0;
+        String read;
+        while((read = buff.readLine())!=null)
+        {
+            String[] array = read.split(",\"");
+            
+             for(int i = 0;i<array.length;i++)
+             {
+                 
+                array[i] = array[i].replaceAll("\"", "");
+             }
+            dtm.addRow(new Object[0]);
+            dtm.setValueAt(array[0], row, 0);
+            dtm.setValueAt(array[1], row, 1);
+            dtm.setValueAt(array[2], row, 2);
+            dtm.setValueAt(array[3], row, 3);
+            dtm.setValueAt(array[4], row, 4);
+            System.out.println(array[0] + array[1] + array[2] + array[3] + array[4]);
+            row++;
+        }
+        buff.close();
+        dtm.removeRow(0);
+          }
+          catch(IOException e)
+          {
+              LB_PG.setText("Error : Import CSV Gagal");
+          }
+        
+    } else {
+        LB_PG.setText("Cancel : Ditolak User");
+    }
+    }//GEN-LAST:event_B_BROWSEActionPerformed
 
     /**
      * @param args the command line arguments
@@ -354,9 +458,15 @@ public class Main extends javax.swing.JFrame {
     private javax.swing.JButton B_EXPORT;
     private javax.swing.JButton B_Statistik;
     private javax.swing.JMenuItem BrowseMenu;
+    private javax.swing.JFileChooser CSV_BROWSE;
     private javax.swing.JMenuItem ExitMenu;
     private javax.swing.JMenu File;
     private javax.swing.JLabel LB_PG;
+    private javax.swing.JMenuBar MenuBar;
+    private javax.swing.JPanel P_CAL;
+    private javax.swing.JPanel P_CSV;
+    private javax.swing.JPanel P_PROC;
+    private javax.swing.JPanel P_Title;
     private javax.swing.JMenuItem ResetMenu;
     private javax.swing.JTextField TF_FN;
     private javax.swing.JLabel jLabel1;
@@ -365,18 +475,13 @@ public class Main extends javax.swing.JFrame {
     private javax.swing.JLabel jLabel4;
     private javax.swing.JLabel jLabel5;
     private javax.swing.JLabel jLabel7;
-    private javax.swing.JMenuBar jMenuBar1;
-    private javax.swing.JPanel jPanel1;
-    private javax.swing.JPanel jPanel2;
-    private javax.swing.JPanel jPanel3;
     private javax.swing.JPanel jPanel4;
-    private javax.swing.JPanel jPanel5;
     private javax.swing.JProgressBar jProgressBar1;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JPopupMenu.Separator jSeparator1;
     private javax.swing.JSpinner jSpinner1;
     private javax.swing.JSpinner jSpinner2;
     private javax.swing.JSpinner jSpinner3;
-    private javax.swing.JTable jTable1;
+    private javax.swing.JTable t_nilai;
     // End of variables declaration//GEN-END:variables
 }
